@@ -12,8 +12,10 @@ import RegistrationForm from './components/RegistrationForm';
 import Items from './components/List/Items';
 
 const Wrapper = styled.div`
-  padding: 5em 5em;
-  min-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
 `;
 
 const LoginWrapper = styled.div`

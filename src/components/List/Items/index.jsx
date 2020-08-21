@@ -97,7 +97,17 @@ class Items extends Component {
     }
   };
 
-  handleSelect = (id) => this.setState({ selectedItemId: id });
+  handleSelect = (id) => {
+    let { selectedItemId } = this.state;
+    if(selectedItemId === null || selectedItemId === undefined ){
+      this.setState({
+        selectedItemId: id
+      })
+    }
+    else{
+      this.setState({ selectedItemId: id });
+    }
+  }
 
   render() {
     const { userId } = this.props;

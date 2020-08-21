@@ -45,6 +45,10 @@ import DeleteInstanceMenu from '../../DeleteInstanceMenu';
 
 import { MdEdit } from "react-icons/md";
 import { MdDelete } from "react-icons/md";
+import ExpandLessIcon from '@material-ui/icons/ExpandLess';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import AddDialog from '../../../custom/AddDialog';
+
 // ns__custom_end unit: list, comp: Item, loc: addedImports
 
 // ns__custom_start unit: list, comp: Item, loc: styling
@@ -70,9 +74,16 @@ const ItemStyleWrapper = styled.div(({
   selected,
   isDeleting,
 }) => `
+.MuiSvgIcon-root {
+  font-size: 300%;
+}
   margin-bottom: 10px;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  border: 1px solid white;
+  border-radius: 5px;
+  box-shadow: 1px 1px 1px #888888;
+  padding: 1em;
   cursor: ${selected ? 'auto' : 'pointer'};
   &:hover {
     border: 1px solid aquamarine;
@@ -83,13 +94,33 @@ const SymbolSpan = styled.span`
   color: #4fd1c5;
   font-size: 300%;
 `;
+const ExpandMoreIconWrapper = styled(ExpandMoreIcon)`
+.MuiSvgIcon-root {
+  font-size: 300%;
+}
+  color: #4fd1c5;
+  font-size: 300%!;
+`;
+
+const ExpandLessIconWrapper = styled(ExpandLessIcon)`
+.MuiSvgIcon-root {
+  font-size: 300%;
+}
+  color: #4fd1c5;
+  font-size: 300%!;
+`;
 
 const Circle = styled.div`
   width: 40px;
   height: 40px;
   background-color: #4fd1c5;
   border-radius: 50%;
-  padding-top: 8px;
+  text-align: center;
+  vertical-align: center;
+`;
+
+const Serial = styled.p`
+  color: white;
 `;
 
 const BigRow = styled.div`
@@ -144,8 +175,22 @@ function Item({
   const [isSaving, updateIsSaving] = useState(false);
   const [isDeleteMode, updateIsDeleteMode] = useState(false);
   const [isDeleting, updateIsDeleting] = useState(false);
+
   // ns__custom_start unit: list, comp: Item, loc: beginning
-  
+  /* any special declarations etc. */
+  const [openAdd, setOpenAdd] = useState(false);
+  const [fullWidth, setFullWidth] = React.useState(false);
+  const [maxWidth, setMaxWidth] = React.useState('xs');
+  const [title, setTitle] = useState("");
+  const [label, setLabel] = React.useState("");
+  const [submitButton, setSubmitButton] = React.useState('');
+  const [gotResponse, setGotResponse] = React.useState(false);
+  const [loadingMessage, setLoadingMessage] = React.useState('');
+  const [completedMessage, setCompletedMessage] = React.useState('');
+  const [closeButton, setCloseButton] = React.useState('OKAY');
+  const [editMode, setEditMode] = React.useState(false);
+  const [deleteMode, setDeleteMode] = React.useState(false);
+
   // ns__custom_end unit: list, comp: Item, loc: beginning
 
 
@@ -155,24 +200,27 @@ function Item({
     return (
       <ItemStyleWrapper onClick={() => onSelect(item.id)}>
         <BigRow>
-        <MidRow>
-          <Circle>{(index > 8 ? index + 1 : '0' + (index + 1))}</Circle>
-          <p>{itemValue}</p>
-          <SymbolSpan>&#94;</SymbolSpan>
-        </MidRow>
-      </BigRow>
+          <MidRow>
+            <Circle><Serial>{(index > 8 ? index + 1 : '0' + (index + 1))}</Serial></Circle>
+            <p>{itemValue}</p>
+            {/* <SymbolSpan>&#94;</SymbolSpan> */}
+            <ExpandMoreIconWrapper />
+          </MidRow>
+        </BigRow>
       </ItemStyleWrapper>
     );
   }
 
-  function handleItemValueChange(e) {
+  const handleItemValueChange = (e) => {
+    e.preventDefault();
+    console.log("editing value : ", e.target.value);
     updateItemValue(e.target.value);
   }
 
   async function handleItemValueSave() {
     updateIsSaving(true);
 
-    await updateInstance({
+    const editItemResponse = await updateInstance({
       variables: {
         actionId: UPDATE_ITEM_FOR_LIST_ACTION_ID,
         executionParameters: JSON.stringify({
@@ -183,29 +231,64 @@ function Item({
       refetchQueries,
     });
 
+    console.log('editItemResponse : ', editItemResponse);
+    if (editItemResponse.data.Execute !== null && editItemResponse.data.Execute !== undefined) {
+      setGotResponse(true);
+      // setCompletedMessage()
+      // completedMessage
+      // setTimeout(() => {
+      //   setOpenAdd(false);
+      // }, 12000);
+    }
+
     updateIsEditMode(false);
     updateIsSaving(false);
   }
 
-  function handleCancelEdit() {
-    updateIsEditMode(false);
+  function handleKeyPress(e) {
+    e.preventDefault();
+    // if (e.charCode === 13) {
+    //   handleItemValueSave(e);
+    // }
   }
 
-  if (isEditMode) {
-    return (
-      <ItemStyleWrapper>
-        <EditInstanceForm
-          id={item.id}
-          label='Item Value:'
-          value={itemValue}
-          onChange={handleItemValueChange}
-          onSave={handleItemValueSave}
-          onCancel={handleCancelEdit}
-          disabled={isSaving}
-        />
-      </ItemStyleWrapper>
-    );
+  function handleCancelEdit() {
+    updateIsEditMode(false);
+    setEditMode(false);
+    // setOpenAdd(false);
   }
+
+  const handleEdit = (e) => {
+    e.preventDefault();
+    setLabel("Task Name");
+    setTitle("Edit Task");
+    setSubmitButton("SAVE");
+    setLoadingMessage("Saving changes...");
+    setCompletedMessage("Changes saved");
+    setCloseButton("OKAY");
+    updateIsEditMode(true);
+    setEditMode(true);
+    setOpenAdd(true);
+  }
+  // if (isEditMode) {
+
+  //   setEditMode(true);
+  //   // setSubmitButton()
+
+  //   // return (
+  //   //   <ItemStyleWrapper>
+  //   //     <EditInstanceForm
+  //   //       id={item.id}
+  //   //       label='Item Value:'
+  //   //       value={itemValue}
+  //   //       onChange={handleItemValueChange}
+  //   //       onSave={handleItemValueSave}
+  //   //       onCancel={handleCancelEdit}
+  //   //       disabled={isSaving}
+  //   //     />
+  //   //   </ItemStyleWrapper>
+  //   // );
+  // }
 
   async function handleDelete() {
     updateIsDeleting(true);
@@ -228,34 +311,49 @@ function Item({
 
   function handleCancelDelete() {
     updateIsDeleteMode(false);
+    setDeleteMode(false);
+    setOpenAdd(false);
   }
 
-  if (isDeleteMode) {
-    return (
-      <ItemStyleWrapper
-        selected={selected}
-        isDeleting={isDeleting}
-      >
-        {itemValue}
-        <DeleteInstanceMenu
-          onDelete={handleDelete}
-          onCancel={handleCancelDelete}
-          disabled={isDeleting}
-        />
-      </ItemStyleWrapper>
-    );
-  }
-
-  // ns__custom_end unit: list, comp: ItemCreationForm, loc: beforeReturn
-
-  const handleDetails = (e) => {
+  const handleRemove = (e) => {
     e.preventDefault();
-    
+    setLabel(`Are you sure to delete your task ${itemValue}  ?`);
+    setTitle("Delete Task");
+    setSubmitButton("DELETE");
+    setLoadingMessage("Deleting task...");
+    setCompletedMessage("Task has been successfully deleted");
+    setCloseButton("OKAY");
+    updateIsDeleteMode(true);
+    setDeleteMode(true);
+    setOpenAdd(true);
   }
+
+  // if (isDeleteMode) {
+  //   return (
+  //     <ItemStyleWrapper
+  //       selected={selected}
+  //       isDeleting={isDeleting}
+  //     >
+  //       {itemValue}
+  //       <DeleteInstanceMenu
+  //         onDelete={handleDelete}
+  //         onCancel={handleCancelDelete}
+  //         disabled={isDeleting}
+  //       />
+  //     </ItemStyleWrapper>
+  //   );
+  // }
 
   // ns__custom_end unit: list, comp: ItemCreationForm, loc: beforeReturn
 
-  
+  // const handleDetails = (e) => {
+  //   e.preventDefault();
+
+  // }
+
+  // ns__custom_end unit: list, comp: ItemCreationForm, loc: beforeReturn
+
+
 
 
 
@@ -271,21 +369,74 @@ function Item({
   return (
     <ItemStyleWrapper selected={selected}>
       <BigRow>
-        <MidRow onClick={(e)=>{handleDetails(e)}}>
+        <MidRow>
           {
             console.log(index)
           }
-          <Circle>{(index > 8 ? index + 1 : '0' + (index + 1))}</Circle>
+          <Circle><Serial>{(index > 8 ? index + 1 : '0' + (index + 1))}</Serial></Circle>
           <p>{itemValue}</p>
-          <SymbolSpan>&#94;</SymbolSpan>
+          <ExpandLessIconWrapper />
         </MidRow>
       </BigRow>
       <BigRow>
         <MidRow>
-          <SmallRow onClick={() => updateIsEditMode(true)}><MdEdit size={25} />Edit</SmallRow>
-          <SmallRow onClick={() => updateIsDeleteMode(true)}><MdDelete size={25} style={{ fill: '#f56565' }} />Delete</SmallRow>
+          <SmallRow
+            // onClick={() => updateIsEditMode(true)}
+            onClick={(e) => handleEdit(e)}
+          ><MdEdit size={25} />Edit</SmallRow>
+          <SmallRow onClick={(e) => handleRemove(e)}><MdDelete size={25} style={{ fill: '#f56565' }} />Delete</SmallRow>
         </MidRow>
       </BigRow>
+
+      {
+        isEditMode &&
+        <AddDialog
+          title={title}
+          label={label}
+          submitButton={submitButton}
+          fullWidth={fullWidth}
+          maxWidth={maxWidth}
+          openAdd={openAdd}
+          handleCloseAddDialog={handleCancelEdit}
+          loading={isSaving}
+          handleChange={handleItemValueChange}
+          handleKeyPress={handleKeyPress}
+          itemValue={itemValue}
+          handleSubmit={handleItemValueSave}
+          completed={gotResponse}
+          loadingMessage={loadingMessage}
+          completedMessage={completedMessage}
+          closeButton={closeButton}
+          editMode={editMode}
+          deleteMode={deleteMode}
+          isEditMode={isEditMode}
+        />
+      }
+
+      {
+        isDeleteMode &&
+        <AddDialog
+          title={title}
+          label={label}
+          submitButton={submitButton}
+          fullWidth={fullWidth}
+          maxWidth={maxWidth}
+          openAdd={openAdd}
+          handleCloseAddDialog={handleCancelDelete}
+          loading={isSaving}
+          handleChange={handleItemValueChange}
+          handleKeyPress={handleKeyPress}
+          itemValue={itemValue}
+          handleSubmit={handleDelete}
+          completed={gotResponse}
+          loadingMessage={loadingMessage}
+          completedMessage={completedMessage}
+          closeButton={closeButton}
+          editMode={editMode}
+          deleteMode={isDeleteMode}
+          isEditMode={isEditMode}
+        />
+      }
     </ItemStyleWrapper>
   );
 }

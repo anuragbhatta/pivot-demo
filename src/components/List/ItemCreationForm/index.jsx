@@ -36,13 +36,9 @@ import {
 // ns__custom_start unit: list, comp: ItemCreationForm, loc: addedImports
 
 //  import AddDialog from '../../../custom/AddDialog';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import TextField from '@material-ui/core/TextField';
 import { Fragment } from 'react';
+import AddDialog from '../../../custom/AddDialog';
+
 // ns__custom_end unit: list, comp: ItemCreationForm, loc: addedImports
 
 // ns__custom_start unit: list, comp: ItemCreationForm, loc: styling
@@ -59,7 +55,9 @@ const Form = styled.div`
 const ButtonWrapper = styled.div`
   border: 2px solid gray;
   border-radius : 20px;
-  margin-top: 8px;
+  margin: 8px;
+  margin-left: 50px;
+  margin-right: 0px;
 `;
 
 const H1Wrapper = styled.h1`
@@ -69,6 +67,8 @@ const H1Wrapper = styled.h1`
 
 const AddButton = styled.button`
   margin: 5px;
+  border: none;
+  background-color: none;
 `;
 
 const SymbolSpan = styled.span`
@@ -129,8 +129,16 @@ function ItemCreationForm({
   // ns__custom_start unit: list, comp: ItemCreationForm, loc: beginning
   /* any special declarations etc. */
   const [openAdd, setOpenAdd] = useState(false);
-  const [fullWidth, setFullWidth] = React.useState(true);
+  const [fullWidth, setFullWidth] = React.useState(false);
   const [maxWidth, setMaxWidth] = React.useState('xs');
+  const [title, setTitle] = useState("Create a Task");
+  const [label, setLabel] = React.useState("Task Name");
+  const [submitButton, setSubmitButton] = React.useState('Add');
+  const [gotResponse, setGotResponse] = React.useState(false);
+  const [loadingMessage, setLoadingMessage] = React.useState('Creating Task...');
+  const [completedMessage, setCompletedMessage] = React.useState('Task successfully created!');
+  const [closeButton, setCloseButton] = React.useState('OKAY');
+  
   // ns__custom_end unit: list, comp: ItemCreationForm, loc: beginning
 
   function handleChange(e) {
@@ -158,6 +166,15 @@ function ItemCreationForm({
       refetchQueries
     });
 
+    console.log('createItemResponse : ', createItemResponse);
+    if(createItemResponse.data.Execute !== null && createItemResponse.data.Execute !== undefined ){
+      setGotResponse(true);
+      // setCompletedMessage()
+      // completedMessage
+      // setTimeout(() => {
+      //   setOpenAdd(false);
+      // }, 12000);
+    }
     // const newItemData = JSON.parse(createItemResponse.data.Execute);
     updateItemValue('');
     updateLoading(false);
@@ -215,45 +232,25 @@ function ItemCreationForm({
           </ButtonWrapper>
         </MidRow>
       </TopRow>
-      <Dialog
+
+      <AddDialog
+        title={title}
+        label={label}
+        submitButton={submitButton}
         fullWidth={fullWidth}
         maxWidth={maxWidth}
-        open={openAdd}
-        onClose={handleCloseAddDialog}
-        aria-labelledby="form-dialog-title"
-      >
-        <DialogTitle id="form-dialog-title">Create a Task</DialogTitle>
-        <DialogContent>
-        {
-          loading
-            ?
-            'Creating Item...'
-            :
-             'Create Item'
-        }
-          <TextField
-            autoFocus
-            margin="dense"
-            id="newtask"
-            label="New Task"
-            type="text"
-            fullWidth
-            onChange={handleChange}
-            onKeyPress={handleKeyPress}
-            value={itemValue}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={(e) => { handleCloseAddDialog(e) }} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={(e) => { handleSubmit(e) }} color="primary">
-            Add
-          </Button>
-        </DialogActions>
-        
-      </Dialog>
-      
+        openAdd={openAdd}
+        handleCloseAddDialog={handleCloseAddDialog}
+        loading={loading}
+        handleChange={handleChange}
+        handleKeyPress={handleKeyPress}
+        itemValue={itemValue}
+        handleSubmit={handleSubmit}
+        completed={gotResponse}
+        loadingMessage={loadingMessage}
+        completedMessage={completedMessage}
+        closeButton={closeButton}
+      />
     </Fragment>
   );
   // ns__end_section unit: list, comp: ItemCreationForm, loc: return
